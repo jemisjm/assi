@@ -1,167 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>과목 및 마감일 관리</title>
-  <style>
-    .warning {
-      color: red;
-    }
-    .completed {
-      color: blue;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>과목 및 마감일 관리</title>
+    <style>
+        .warning {
+            color: red;
+        }
+
+        .completed {
+            color: blue;
+        }
+    </style>
 </head>
+
 <body>
 
-<h2>과목 및 마감일</h2>
+    <h2>과목 및 마감일</h2>
 
-<form id="taskForm">
-  <label for="subject">과목:</label>
-  <input type="text" id="subject" required>
+    <form id="taskForm">
+        <label for="subject">과목:</label>
+        <input type="text" id="subject" required>
 
-  <label for="deadlineDay">마감일 요일:</label>
-  <div>
-    <label><input type="checkbox" name="deadlineToggle" value="월"> 월</label>
-    <label><input type="checkbox" name="deadlineToggle" value="화"> 화</label>
-    <label><input type="checkbox" name="deadlineToggle" value="수"> 수</label>
-    <label><input type="checkbox" name="deadlineToggle" value="목"> 목</label>
-    <label><input type="checkbox" name="deadlineToggle" value="금"> 금</label>
-    <label><input type="checkbox" name="deadlineToggle" value="토"> 토</label>
-    <label><input type="checkbox" name="deadlineToggle" value="일"> 일</label>
-  </div>
+        <label for="deadlineDay">마감일 요일:</label>
+        <div>
+            <label><input type="checkbox" name="deadlineToggle" value="월"> 월</label>
+            <label><input type="checkbox" name="deadlineToggle" value="화"> 화</label>
+            <label><input type="checkbox" name="deadlineToggle" value="수"> 수</label>
+            <label><input type="checkbox" name="deadlineToggle" value="목"> 목</label>
+            <label><input type="checkbox" name="deadlineToggle" value="금"> 금</label>
+            <label><input type="checkbox" name="deadlineToggle" value="토"> 토</label>
+            <label><input type="checkbox" name="deadlineToggle" value="일"> 일</label>
+        </div>
 
-  <button type="button" onclick="addTask()">과목 추가</button>
-</form>
+        <button type="button" onclick="addTask()">과목 추가</button>
+    </form>
 
-<ul id="taskList"></ul>
+    <ul id="taskList"></ul>
 
-<div id="todayDate"></div>
+    <div id="todayDate"></div>
 
-<button type="button" onclick="resetTasks()">리셋</button>
+    <button type="button" onclick="resetTasks()">리셋</button>
 
-<script>
-  // Load tasks from local storage on page load
-  window.addEventListener('load', loadTasks);
+    <script>
+        // Load tasks from local storage on page load
+        window.addEventListener('load', loadTasks);
 
-  function addTask() {
-    const subject = document.getElementById('subject').value;
-    const selectedDays = document.querySelectorAll('input[name="deadlineToggle"]:checked');
-    const today = new Date();
+        function addTask() {
+            const subject = document.getElementById('subject').value;
+            const selectedDays = document.querySelectorAll('input[name="deadlineToggle"]:checked');
+            const today = new Date();
 
-    const taskList = document.getElementById('taskList');
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
+            const taskList = document.getElementById('taskList');
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
 
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
 
-    let hasRedWarning = false;
+            let hasRedWarning = false;
+            let hasTomorrowDeadline = false;
 
-    selectedDays.forEach(selectedDay => {
-      const selectedDayValue = selectedDay.value.toLowerCase();
-      const selectedDayIndex = days.indexOf(selectedDayValue);
+            selectedDays.forEach(selectedDay => {
+                const selectedDayValue = selectedDay.value.toLowerCase();
+                const selectedDayIndex = days.indexOf(selectedDayValue);
 
-      // Calculate the next occurrence of the selected day
-      let deadlineDayIndex = selectedDayIndex;
-      let daysToAdd = selectedDayIndex - today.getDay();
-      if (daysToAdd <= 0) {
-        daysToAdd += 7;
-      }
-      const deadlineDay = days[(today.getDay() + daysToAdd) % 7];
+                // Calculate the next occurrence of the selected day
+                let deadlineDayIndex = selectedDayIndex;
+                let daysToAdd = selectedDayIndex - today.getDay();
+                if (daysToAdd <= 0) {
+                    daysToAdd += 7;
+                }
+                const deadlineDay = days[(today.getDay() + daysToAdd) % 7];
 
-      if (deadlineDay === days[today.getDay()]) {
-        listItem.innerHTML += ` (오늘 마감)`;
-      } else if (deadlineDay === days[(today.getDay() + 6) % 7]) {
-        listItem.innerHTML += ` (내일 마감)`;
-        hasRedWarning = true; // 빨간색 경고 표시
-      }
+                if (deadlineDay === days[today.getDay()]) {
+                    listItem.innerHTML += ` (오늘 마감)`;
+                } else if (deadlineDay === days[(today.getDay() + 6) % 7]) {
+                    listItem.innerHTML += ` (내일 마감)`;
+                    hasTomorrowDeadline = true; // 내일 마감인 경우 플래그 설정
+                    hasRedWarning = true; // 빨간색 경고 표시
+                }
 
-      listItem.innerHTML += ` (${deadlineDay}요일)`;
-    });
+                listItem.innerHTML += ` (${deadlineDay}요일)`;
+            });
 
-    if (hasRedWarning) {
-      listItem.style.color = 'red';
-    }
+            if (hasRedWarning) {
+                listItem.style.color = 'red';
+            }
+            if (hasTomorrowDeadline) {
+                listItem.innerHTML += ` <span class="warning">(내일 마감)</span>`;
+            }
 
-    listItem.querySelector('input').addEventListener('change', checkCompletion);
-    taskList.appendChild(listItem);
+            listItem.querySelector('input').addEventListener('change', checkCompletion);
+            taskList.appendChild(listItem);
 
-    // Save tasks to local storage
-    saveTasks();
+            // Save tasks to local storage
+            saveTasks();
 
-    document.getElementById('subject').value = '';
-    selectedDays.forEach(selectedDay => {
-      selectedDay.checked = false; // 선택된 토글바 초기화
-    });
-  }
+            document.getElementById('subject').value = '';
+            selectedDays.forEach(selectedDay => {
+                selectedDay.checked = false; // 선택된 토글바 초기화
+            });
+        }
 
-  function checkCompletion() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+        function checkCompletion() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
 
-    if (allChecked) {
-      document.getElementById('taskList').style.color = 'blue'; // 파란색 완료 표시
-      document.getElementById('todayDate').style.color = 'blue'; // 파란색 완료 표시
-    } else {
-      document.getElementById('taskList').style.color = ''; // 색상 초기화
-      document.getElementById('todayDate').style.color = ''; // 색상 초기화
-    }
-  }
+            if (allChecked) {
+                document.getElementById('taskList').style.color = 'blue'; // 파란색 완료 표시
+                document.getElementById('todayDate').style.color = 'blue'; // 파란색 완료 표시
+                document.getElementById('completionStatus').innerText = '완료';
+            } else {
+                document.getElementById('taskList').style.color = ''; // 색상 초기화
+                document.getElementById('todayDate').style.color = ''; // 색상 초기화
+                document.getElementById('completionStatus').innerText = '';
+            }
+        }
 
-  function resetTasks() {
-    // Reset only tasks and deadlines, keep today's date
-    document.getElementById('taskList').innerHTML = '';
-    loadTasks(); // Reload tasks from local storage
-  }
+        function resetTasks() {
+            // Reset only tasks and deadlines, keep today's date
+            document.getElementById('taskList').innerHTML = '';
+            loadTasks(); // Reload tasks from local storage
+        }
 
-  function saveTasks() {
-    const tasks = [];
-    const taskItems = document.querySelectorAll('#taskList li');
-    taskItems.forEach(item => {
-      const text = item.textContent.trim();
-      tasks.push(text);
-    });
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }
+        function saveTasks() {
+            const tasks = [];
+            const taskItems = document.querySelectorAll('#taskList li');
+            taskItems.forEach(item => {
+                const text = item.textContent.trim();
+                tasks.push(text);
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
 
-  function loadTasks() {
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.forEach(task => {
-      const listItem = document.createElement('li');
-      listItem.innerHTML = task;
-      listItem.querySelector('input').addEventListener('change', checkCompletion);
-      taskList.appendChild(listItem);
-    });
+        function loadTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
 
-    checkCompletion(); // Update completion status
-  }
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = task;
+                listItem.querySelector('input').addEventListener('change', checkCompletion);
+                taskList.appendChild(listItem);
+            });
 
-  // Display today's date and day
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const today = new Date();
-  const todayDay = days[today.getDay()];
-  document.getElementById('todayDate').innerText = `오늘 날짜: ${formatDate(today)} (${todayDay}요일)`;
+            checkCompletion(); // Update completion status
+        }
 
-  function formatDate(date) {
-    const year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    let day = date.getDate();
+        // Display today's date and day
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const today = new Date();
+        const todayDay = days[today.getDay()];
+        document.getElementById('todayDate').innerHTML = `오늘 날짜: ${formatDate(today)} (${todayDay}요일)`;
+        document.getElementById('completionStatus').innerText = ''; // 초기화
 
-    if (month < 10) {
-      month = `0${month}`;
-    }
+        function formatDate(date) {
+            const year = date.getFullYear();
+            let month = date.getMonth() + 1;
+            let day = date.getDate();
 
-    if (day < 10) {
-      day = `0${day}`;
-    }
+            if (month < 10) {
+                month = `0${month}`;
+            }
 
-    return `${year}-${month}-${day}`;
-  }
-</script>
+            if (day < 10) {
+                day = `0${day}`;
+            }
+
+            return `${year}-${month}-${day}`;
+        }
+    </script>
 
 </body>
+
 </html>
