@@ -21,8 +21,16 @@
   <label for="subject">과목:</label>
   <input type="text" id="subject" required>
 
-  <label for="deadline">마감일:</label>
-  <input type="date" id="deadline" required>
+  <label for="deadlineDay">마감일 요일:</label>
+  <select id="deadlineDay" required>
+    <option value="일">일요일</option>
+    <option value="월">월요일</option>
+    <option value="화">화요일</option>
+    <option value="수">수요일</option>
+    <option value="목">목요일</option>
+    <option value="금">금요일</option>
+    <option value="토">토요일</option>
+  </select>
 
   <button type="button" onclick="addTask()">과목 추가</button>
 </form>
@@ -36,7 +44,7 @@
 <script>
   function addTask() {
     const subject = document.getElementById('subject').value;
-    const deadline = new Date(document.getElementById('deadline').value);
+    const selectedDay = document.getElementById('deadlineDay').value;
     const today = new Date();
 
     const taskList = document.getElementById('taskList');
@@ -44,11 +52,17 @@
     listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
 
     const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const deadlineDay = days[deadline.getDay()];
 
-    if (deadline.getTime() === today.getTime()) {
+    // Find the index of the selected day
+    const selectedDayIndex = days.indexOf(selectedDay);
+    
+    // Calculate the deadline day based on today's day
+    const deadlineDayIndex = (today.getDay() + selectedDayIndex) % 7;
+    const deadlineDay = days[deadlineDayIndex];
+
+    if (deadlineDay === days[today.getDay()]) {
       listItem.innerHTML += ` (오늘 마감)`;
-    } else if (deadline.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
+    } else if (deadlineDay === days[(today.getDay() + 6) % 7]) {
       listItem.innerHTML += ` (내일 마감)`;
       listItem.style.color = 'red'; // 빨간색 경고 표시
     }
@@ -59,7 +73,7 @@
     taskList.appendChild(listItem);
 
     document.getElementById('subject').value = '';
-    document.getElementById('deadline').value = '';
+    document.getElementById('deadlineDay').value = '';
   }
 
   function checkCompletion() {
@@ -82,8 +96,11 @@
     document.getElementById('todayDate').style.color = ''; // 색상 초기화
   }
 
-  // Display today's date
-  document.getElementById('todayDate').innerText = `오늘 날짜: ${formatDate(new Date())}`;
+  // Display today's date and day
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const today = new Date();
+  const todayDay = days[today.getDay()];
+  document.getElementById('todayDate').innerText = `오늘 날짜: ${formatDate(today)} (${todayDay}요일)`;
 
   function formatDate(date) {
     const year = date.getFullYear();
