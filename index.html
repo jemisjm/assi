@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>과목 및 마감일 관리</title>
+  <style>
+    .warning {
+      color: red;
+    }
+    .completed {
+      color: blue;
+    }
+  </style>
+</head>
+<body>
+
+<h2>과목 및 마감일</h2>
+
+<form id="taskForm">
+  <label for="subject">과목:</label>
+  <input type="text" id="subject" required>
+
+  <label for="deadline">마감일:</label>
+  <input type="date" id="deadline" required>
+
+  <button type="button" onclick="addTask()">과목 추가</button>
+</form>
+
+<ul id="taskList"></ul>
+
+<button type="button" onclick="resetTasks()">리셋</button>
+
+<script>
+  function addTask() {
+    const subject = document.getElementById('subject').value;
+    const deadline = new Date(document.getElementById('deadline').value);
+    const today = new Date();
+
+    const taskList = document.getElementById('taskList');
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
+
+    if (deadline.getTime() === today.getTime()) {
+      listItem.innerHTML += ` (오늘 마감)`;
+    } else if (deadline.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
+      listItem.innerHTML += ` (내일 마감)`;
+      listItem.style.color = 'red'; // 빨간색 경고 표시
+    }
+
+    listItem.querySelector('input').addEventListener('change', checkCompletion);
+    taskList.appendChild(listItem);
+
+    document.getElementById('subject').value = '';
+    document.getElementById('deadline').value = '';
+  }
+
+  function checkCompletion() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+    if (allChecked) {
+      document.getElementById('taskList').style.color = 'blue'; // 파란색 완료 표시
+    } else {
+      document.getElementById('taskList').style.color = ''; // 색상 초기화
+    }
+  }
+
+  function resetTasks() {
+    document.getElementById('taskList').innerHTML = '';
+    document.getElementById('taskList').style.color = ''; // 색상 초기화
+  }
+</script>
+
+</body>
+</html>
