@@ -62,13 +62,13 @@
       const selectedDayValue = selectedDay.value.toLowerCase();
       const selectedDayIndex = days.indexOf(selectedDayValue);
 
-      // Find the next occurrence of the selected day
+      // Calculate the next occurrence of the selected day
       let deadlineDayIndex = selectedDayIndex;
-      while (today.getDay() !== deadlineDayIndex) {
-        deadlineDayIndex = (deadlineDayIndex + 1) % 7;
+      let daysToAdd = selectedDayIndex - today.getDay();
+      if (daysToAdd <= 0) {
+        daysToAdd += 7;
       }
-
-      const deadlineDay = days[deadlineDayIndex];
+      const deadlineDay = days[(today.getDay() + daysToAdd) % 7];
 
       if (deadlineDay === days[today.getDay()]) {
         listItem.innerHTML += ` (오늘 마감)`;
