@@ -22,15 +22,15 @@
   <input type="text" id="subject" required>
 
   <label for="deadlineDay">마감일 요일:</label>
-  <select id="deadlineDay" required>
-    <option value="일">일요일</option>
-    <option value="월">월요일</option>
-    <option value="화">화요일</option>
-    <option value="수">수요일</option>
-    <option value="목">목요일</option>
-    <option value="금">금요일</option>
-    <option value="토">토요일</option>
-  </select>
+  <div>
+    <label><input type="checkbox" name="deadlineToggle" value="월"> 월</label>
+    <label><input type="checkbox" name="deadlineToggle" value="화"> 화</label>
+    <label><input type="checkbox" name="deadlineToggle" value="수"> 수</label>
+    <label><input type="checkbox" name="deadlineToggle" value="목"> 목</label>
+    <label><input type="checkbox" name="deadlineToggle" value="금"> 금</label>
+    <label><input type="checkbox" name="deadlineToggle" value="토"> 토</label>
+    <label><input type="checkbox" name="deadlineToggle" value="일"> 일</label>
+  </div>
 
   <button type="button" onclick="addTask()">과목 추가</button>
 </form>
@@ -44,7 +44,7 @@
 <script>
   function addTask() {
     const subject = document.getElementById('subject').value;
-    const selectedDay = document.getElementById('deadlineDay').value;
+    const selectedDays = document.querySelectorAll('input[name="deadlineToggle"]:checked');
     const today = new Date();
 
     const taskList = document.getElementById('taskList');
@@ -52,28 +52,36 @@
     listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
 
     const days = ['일', '월', '화', '수', '목', '금', '토'];
-
-    // Find the index of the selected day
-    const selectedDayIndex = days.indexOf(selectedDay);
     
-    // Calculate the deadline day based on today's day
-    const deadlineDayIndex = (today.getDay() + selectedDayIndex) % 7;
-    const deadlineDay = days[deadlineDayIndex];
+    let hasRedWarning = false;
 
-    if (deadlineDay === days[today.getDay()]) {
-      listItem.innerHTML += ` (오늘 마감)`;
-    } else if (deadlineDay === days[(today.getDay() + 6) % 7]) {
-      listItem.innerHTML += ` (내일 마감)`;
-      listItem.style.color = 'red'; // 빨간색 경고 표시
+    selectedDays.forEach(selectedDay => {
+      const selectedDayValue = selectedDay.value.toLowerCase();
+      const selectedDayIndex = days.indexOf(selectedDayValue);
+      const deadlineDayIndex = (today.getDay() + selectedDayIndex) % 7;
+      const deadlineDay = days[deadlineDayIndex];
+
+      if (deadlineDay === days[today.getDay()]) {
+        listItem.innerHTML += ` (오늘 마감)`;
+      } else if (deadlineDay === days[(today.getDay() + 6) % 7]) {
+        listItem.innerHTML += ` (내일 마감)`;
+        hasRedWarning = true; // 빨간색 경고 표시
+      }
+
+      listItem.innerHTML += ` (${deadlineDay}요일)`;
+    });
+
+    if (hasRedWarning) {
+      listItem.style.color = 'red';
     }
-
-    listItem.innerHTML += ` (${deadlineDay}요일)`;
 
     listItem.querySelector('input').addEventListener('change', checkCompletion);
     taskList.appendChild(listItem);
 
     document.getElementById('subject').value = '';
-    document.getElementById('deadlineDay').value = '';
+    selectedDays.forEach(selectedDay => {
+      selectedDay.checked = false; // 선택된 토글바 초기화
+    });
   }
 
   function checkCompletion() {
