@@ -42,6 +42,9 @@
 <button type="button" onclick="resetTasks()">리셋</button>
 
 <script>
+  // Load tasks from local storage on page load
+  window.addEventListener('load', loadTasks);
+
   function addTask() {
     const subject = document.getElementById('subject').value;
     const selectedDays = document.querySelectorAll('input[name="deadlineToggle"]:checked');
@@ -52,13 +55,19 @@
     listItem.innerHTML = `<input type="checkbox" id="${subject}"> ${subject}`;
 
     const days = ['일', '월', '화', '수', '목', '금', '토'];
-    
+
     let hasRedWarning = false;
 
     selectedDays.forEach(selectedDay => {
       const selectedDayValue = selectedDay.value.toLowerCase();
       const selectedDayIndex = days.indexOf(selectedDayValue);
-      const deadlineDayIndex = (today.getDay() + selectedDayIndex) % 7;
+
+      // Find the next occurrence of the selected day
+      let deadlineDayIndex = selectedDayIndex;
+      while (today.getDay() !== deadlineDayIndex) {
+        deadlineDayIndex = (deadlineDayIndex + 1) % 7;
+      }
+
       const deadlineDay = days[deadlineDayIndex];
 
       if (deadlineDay === days[today.getDay()]) {
@@ -77,6 +86,9 @@
 
     listItem.querySelector('input').addEventListener('change', checkCompletion);
     taskList.appendChild(listItem);
+
+    // Save tasks to local storage
+    saveTasks();
 
     document.getElementById('subject').value = '';
     selectedDays.forEach(selectedDay => {
@@ -98,10 +110,34 @@
   }
 
   function resetTasks() {
+    // Reset only tasks and deadlines, keep today's date
     document.getElementById('taskList').innerHTML = '';
-    document.getElementById('todayDate').innerHTML = '';
-    document.getElementById('taskList').style.color = ''; // 색상 초기화
-    document.getElementById('todayDate').style.color = ''; // 색상 초기화
+    loadTasks(); // Reload tasks from local storage
+  }
+
+  function saveTasks() {
+    const tasks = [];
+    const taskItems = document.querySelectorAll('#taskList li');
+    taskItems.forEach(item => {
+      const text = item.textContent.trim();
+      tasks.push(text);
+    });
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  function loadTasks() {
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks.forEach(task => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = task;
+      listItem.querySelector('input').addEventListener('change', checkCompletion);
+      taskList.appendChild(listItem);
+    });
+
+    checkCompletion(); // Update completion status
   }
 
   // Display today's date and day
